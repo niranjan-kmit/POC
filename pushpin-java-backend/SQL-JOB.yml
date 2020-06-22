@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-job
+spec:
+  template:
+    metadata:
+      name: init-job
+      labels:
+        app: init-postgresdb
+    spec:
+      containers:
+      - image: tmaier/postgresql-client
+        name: init-db
+        command: ['sh', '-c',' if $(db-install); then psql -h $DB_HOST -p 5432 -f /sqlCommand/db-install.sql -U rtuser;else psql -h $DB_HOST -p 5432 -f /sqlCommand/db-uninstall.sql -U rtuser; fi ']
+        #command: [ "sh","-c","psql -h pg-service -p 5432 -f /sqlCommand/db-init.sql -U rtuser "]
+        volumeMounts:
+        - name: sql
+          mountPath: /sqlCommand/
+        env:
+          - name: DB_HOST
+            value: "pg-service"
+          - name: db-install
+            valueFrom:
+                configMapKeyRef:
+                  name: psql-script-config
+                  key: db.install
+      volumes:
+        - name: sql
+          configMap:
+            name: psql-script-config
+      restartPolicy: OnFailure
