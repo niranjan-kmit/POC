@@ -19,7 +19,7 @@ spec:
           mountPath: /sqlCommand/
         env:
           - name: DB_HOST
-            value: "http://pl-realtime-db.cluster-cnk55abswtuv.us-east-1.rds.amazonaws.com/"
+            value: "pg-service"
           - name: USER
             value: "realtime_user"
           - name: db-install

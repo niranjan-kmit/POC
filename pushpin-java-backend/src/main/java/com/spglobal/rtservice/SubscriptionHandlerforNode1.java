@@ -25,18 +25,29 @@ public class SubscriptionHandlerforNode1 extends ZContext {
 
 	static Logger logger = LoggerFactory.getLogger(SubscriptionHandlerforNode1.class);
 
-	@Value("${publisher_url}")
-	private String publisher_url;
+	@Value("${pushpin.databasename}")
+	private String databaseName;
+
+	@Value("${pushpin.table}")
+	private String table;
+
+	@Value("${pushpin.host_url}")
+	private String host;
+
+	@Value("${pushpin.database.user}")
+	private String user;
+	
+	@Value("${pushpin.database.password}")
+	private String password;
+	
+	
 
 	public static final String PUSHPIN_NODE = "NODE1";
-
-	private WSO2ManagerService managerService;
 
 	String rootPath = "/siddhi-files/";
 	File dirFile = new File(rootPath);
 
 	public SubscriptionHandlerforNode1() {
-		managerService = new WSO2ManagerService();
 	}
 
 	@Bean
@@ -55,8 +66,8 @@ public class SubscriptionHandlerforNode1 extends ZContext {
 			socket.setImmediate(true);
 			socket.connect("tcp://localhost:5562");
 
-			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/pushpin_tracker", "rtuser",
-					"rtpassword");
+			connection = DriverManager.getConnection(host,user,password);
+
 			Statement statement = connection.createStatement();
 
 			byte[] srr = socket.recv();
@@ -66,8 +77,8 @@ public class SubscriptionHandlerforNode1 extends ZContext {
 
 			if (0 == type) {
 
-				if (managerService.validateWithAllNodes(topicName)) {
-					String t = "SELECT * FROM realtime.pushpin_subscription WHERE channel='" + topicName + "'";
+				if (validateWithAllNodes(topicName)) {
+					String t = "SELECT * FROM pushpin_subscription WHERE channel='" + topicName + "'";
 					ResultSet resultSet = statement.executeQuery(t);
 					boolean isresult = resultSet.next();
 					if (isresult) {
@@ -89,7 +100,7 @@ public class SubscriptionHandlerforNode1 extends ZContext {
 
 			} else {
 				try {
-					String t = "SELECT * FROM realtime.pushpin_subscription WHERE channel='" + topicName + "'";
+					String t = "SELECT * FROM pushpin_subscription WHERE channel='" + topicName + "'";
 					ResultSet resultSet = statement.executeQuery(t);
 					boolean isresult = resultSet.next();
 					if (isresult) {
@@ -121,17 +132,16 @@ public class SubscriptionHandlerforNode1 extends ZContext {
 	}
 
 	private void deleteSiddhiApp(Statement statement, String topicName) throws SQLException {
-		boolean isDeleted = statement
-				.execute("DELETE FROM realtime.pushpin_subscription WHERE channel='" + topicName + "'");
+		boolean isDeleted = statement.execute("DELETE FROM pushpin_subscription WHERE channel='" + topicName + "'");
 		if (isDeleted) {
-			managerService.deletingFilesRecursively(dirFile, topicName + ".siddhi");
+			deletingFilesRecursively(dirFile, topicName + ".siddhi");
 		}
 		logger.info("deleted the channel with name:" + topicName);
 	}
 
 	private void updateQuery(Statement statement, String topicName, String[] nodes, String qpreparation)
 			throws SQLException {
-		String query = "UPDATE realtime.pushpin_subscription SET nodes=" + "'" + "{" + qpreparation + "}" + "'"
+		String query = "UPDATE pushpin_subscription SET nodes=" + "'" + "{" + qpreparation + "}" + "'"
 				+ " WHERE channel=" + "'" + topicName + "'";
 		System.out.println("=========>" + query);
 		boolean isSaved = statement.execute(query);
@@ -142,11 +152,50 @@ public class SubscriptionHandlerforNode1 extends ZContext {
 
 	private void createQuery(Statement statement, String topicName) throws SQLException {
 		String eQuery = "'" + topicName + "'" + "," + "'" + "{" + "\"" + PUSHPIN_NODE + "\"" + "}" + "'";
-		String query = "INSERT INTO realtime.pushpin_subscription(channel,nodes) values(" + eQuery + ")";
+		String query = "INSERT INTO pushpin_subscription(channel,nodes) values(" + eQuery + ")";
 		System.out.println("=========>" + query);
 		boolean isSaved = statement.execute(query);
 		if (isSaved) {
 			logger.info("new node assigned to channel:" + PUSHPIN_NODE);
 		}
 	}
+
+	public boolean deletingFilesRecursively(File rootPath, String file) {
+		// file = file + ".siddhi";
+		for (File subFile : rootPath.listFiles()) {
+			if (subFile.isDirectory()) {
+				deletingFilesRecursively(subFile, file);
+			} else if (subFile.isFile() && subFile.getName().equals(file)) {
+				System.out.println("file name :" + file + "was removed.");
+				return subFile.delete();
+
+			}
+		}
+		return false;
+
+	}
+
+	private boolean validateWithAllNodes(String topicName) {
+		try {
+			Connection connection = DriverManager.getConnection(host,user,password);
+			System.out.println("Connected to PostgreSQL database!");
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement
+					.executeQuery("SELECT * FROM realtime.pushpin_subscription WHERE channel='" + topicName + "'");
+			while (resultSet.next()) {
+				System.out.printf("deleted channel" + resultSet.getString("channel"));
+				Array nodesArr = resultSet.getArray("nodes");
+				String[] nodes = (String[]) nodesArr.getArray();
+				// System.out.printf("%-30.30s", nodes);
+				return nodes.length > 1;
+
+			}
+
+		} catch (SQLException e) {
+			System.out.println("Connection failure.");
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 }

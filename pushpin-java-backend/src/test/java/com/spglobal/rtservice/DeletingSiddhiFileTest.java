@@ -18,7 +18,7 @@ public class DeletingSiddhiFileTest {
 
 	File rootpath = null;
 
-	WSO2ManagerService managerService = null;
+	SubscriptionHandlerforNode1 managerService = null;
 	
 	@Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -27,7 +27,7 @@ public class DeletingSiddhiFileTest {
 	public void before() throws IOException {
 		rootpath = tempFolder.newFolder("siddhifiles");
 
-		managerService = new WSO2ManagerService();
+		managerService = new SubscriptionHandlerforNode1();
 	}
 
 	@Test

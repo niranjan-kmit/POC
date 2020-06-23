@@ -14,7 +14,9 @@ import org.fanout.gripcontrol.WebSocketMessageFormat;
 import org.fanout.pubcontrol.Format;
 import org.fanout.pubcontrol.Item;
 import org.fanout.pubcontrol.PublishFailedException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -22,26 +24,28 @@ import org.springframework.context.annotation.Bean;
 import fi.iki.elonen.NanoHTTPD;
 
 @SpringBootApplication
-public class PushpinGWProxy extends NanoHTTPD {
-
-	@Autowired
-	private SubscriptionHandlerforNode1 subscriptionHandler;
-
-	@Autowired
-	private TokenValidation tokenValidation;
-
+public class PushpinGWProxy extends NanoHTTPD implements InitializingBean {
+	
 	public PushpinGWProxy() throws IOException {
 		super(8000);
 		start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
 		System.out.println("Server Started at Port:" + 8000);
 	}
 
-	@Bean
-	public SubscriptionHandlerforNode1 subscriptionHandler() {
-		SubscriptionHandlerforNode1 st = new SubscriptionHandlerforNode1();
-		st.disconnectHanlder();
-		return st;
-	}
+	@Autowired
+	private SubscriptionHandlerforNode1 subscriptionHandler;
+
+	@Autowired
+	private TokenValidation tokenValidation;
+	
+	
+
+	/*
+	 * @Bean public SubscriptionHandlerforNode1 subscriptionHandler() {
+	 * SubscriptionHandlerforNode1 st = new SubscriptionHandlerforNode1();
+	 * System.out.println("Constructor Initialization==="+publisher_url);
+	 * st.disconnectHanlder(); return st; }
+	 */
 
 	@Bean
 	public WSO2ManagerService managerService() {
@@ -51,8 +55,6 @@ public class PushpinGWProxy extends NanoHTTPD {
 	public static void main(String[] args) {
 
 		SpringApplication.run(PushpinGWProxy.class, args);
-
-		// new PushpinGWProxy();
 
 	}
 
@@ -90,7 +92,6 @@ public class PushpinGWProxy extends NanoHTTPD {
 		 * "changeme")) return newFixedLengthResponse(Response.Status.UNAUTHORIZED,
 		 * null, "invalid grip-sig token");
 		 */
-
 		// Only allow the POST method:
 		Method method = session.getMethod();
 		if (!Method.POST.equals(method))
@@ -124,14 +125,14 @@ public class PushpinGWProxy extends NanoHTTPD {
 	private Response connectHandler(IHTTPSession session, List<WebSocketEvent> inEvents) {
 		Map<String, String> headersMap = session.getHeaders();
 
-		String token = session.getCookies().read("SP_SSO_JWT_COOKIE");
-		if (token == null) {
-			token = session.getHeaders().get("authorization");
-		}
-
-		if (!tokenValidation.verifyTokenfromService(token)) {
-			return newFixedLengthResponse(Response.Status.UNAUTHORIZED, null, "unauthorized request!");
-		}
+		/*
+		 * String token = session.getCookies().read("SP_SSO_JWT_COOKIE"); if (token ==
+		 * null) { token = session.getHeaders().get("authorization"); }
+		 * 
+		 * if (!tokenValidation.verifyTokenfromService(token)) { return
+		 * newFixedLengthResponse(Response.Status.UNAUTHORIZED, null,
+		 * "unauthorized request!"); }
+		 */
 
 		String responseBody = "";
 		if (inEvents != null && inEvents.size() > 0 && inEvents.get(0).type.equals("OPEN")) {
@@ -165,6 +166,12 @@ public class PushpinGWProxy extends NanoHTTPD {
 	private void disConnectHandler(IHTTPSession session, List<WebSocketEvent> inEvents) {
 		// TO DO we need to handle the deletion of siddhi apps.
 
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		subscriptionHandler.disconnectHanlder();
+		
 	}
 
 }
