@@ -1,0 +1,41 @@
+1. Setup Local
+Create and Start Pod
+    kubectl apply -f eks-pushpin-deployment.yml
+
+Get pod name
+    kubectl get pods
+
+Port forward:replace pod name from  above
+    kubectl port-forward pushpin-dep-7cd4769567-6j6k6  7999:7999 5561:5561 9390:9390 8006:8006
+
+You will see 3 container running on a single Pod.
+
+
+2. Use localsetup 
+use rest client with below url. just type hello and hit send (this will create channel)
+    ws://localhost:7999/
+    
+Your client is ready to recieve messages
+
+
+3. Publish Message through Siddhi Tooling/Editor.
+
+Open Siddhi Editor: 
+    Use url to open editor http://localhost:9390/editor#
+
+Create Siddhi app
+    Import PublishPushpin.siddhi . File -> Import
+
+     Note: Tools ->  Console: This will shows the server console. helps to debug.
+
+Publish Message
+    Tools -> Event Simulator
+    Select Siddhi App Name
+    Select Stream Name as PushpinStream
+    Enter sample text in News textbox
+    Click on "Start And Send" or "Send"
+
+ You should recive the sample message to your Websocket client.   
+
+
+

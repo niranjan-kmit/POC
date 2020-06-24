@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pushpin-config
+data:
+  routes: |
+    *,proto=ws localhost:8090,over_http
+    *,proto=http localhost:8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pushpin-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pushpin
+  template:
+    metadata:
+      labels:
+        app: pushpin
+    spec:
+      containers:
+      - name: pushpin
+        image: fanout/pushpin
+        ports:
+        - containerPort: 7999
+        - containerPort: 5560
+        - containerPort: 5561
+        - containerPort: 5562
+        volumeMounts:
+        - name: pushpin-config
+          mountPath: /etc/pushpin/routes
+          subPath: routes
+      - name: pushpin-backend
+        image: gharikrishna123/pushpinbackend:v5
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        - containerPort: 8090
+      - name: siddhi-editor
+        image: siddhiio/siddhi-tooling:5.1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9390
+      # - name: siddhi-runner
+      #   image: siddhiio/siddhi-runner-alpine:latest
+      #   imagePullPolicy: Always
+      #   ports:
+      #   - containerPort: 8006
+      #   - containerPort: 9090
+      #   - containerPort: 9443
+      volumes:
+      - name: pushpin-config
+        configMap:
+          name: pushpin-config  
+
+       

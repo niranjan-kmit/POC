@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pushpin-config
+data:
+  routes: |
+    *,proto=ws pushpin-backend-svc:8090,over_http
+    *,proto=http pushpin-backend-svc:8080
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: pushpin
+  name: pushpin
+  selfLink: /apis/extensions/v1beta1/namespaces/wso2/deployments/pushpin
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: pushpin
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pushpin
+    spec:
+      containers:
+      - image: 557350676069.dkr.ecr.us-east-1.amazonaws.com/plt-realtime/pushpin:1.28.0
+        imagePullPolicy: IfNotPresent
+        name: pushpin
+        ports:
+        - containerPort: 7999
+          protocol: TCP
+        - containerPort: 5560
+          protocol: TCP
+        - containerPort: 5561
+          protocol: TCP
+        - containerPort: 5562
+          protocol: TCP
+        - containerPort: 5563
+          protocol: TCP
+        volumeMounts:
+        - name: pushpin-config
+          mountPath: /etc/pushpin/routes
+          subPath: routes
+      - image: nnallapu/pushpin-java-backend:1.0
+        imagePullPolicy: IfNotPresent
+        name: pushpin-java-backend
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        volumeMounts:
+        - name: si-node-one
+          mountPath: /siddhi-files/si-efs-one
+        - name: si-node-two
+          mountPath: /siddhi-files/si-efs-two  
+      volumes:
+      - name: pushpin-config
+        configMap:
+          name: pushpin-config
+      - name: si-node-one
+        persistentVolumeClaim:
+          claimName: si-worker-1-volume-claim
+      - name: si-node-two
+        persistentVolumeClaim:
+          claimName: si-worker-2-volume-claim     

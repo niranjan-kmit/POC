@@ -1,0 +1,15 @@
+docker build -f Dockerfile -t gharikrishna123/pushpinbackend:v5 .
+docker push gharikrishna123/pushpinbackend:v5
+docker run -it gharikrishna123/pushpinbackend:v5 sh
+http://localhost:8000
+
+
+Change the route (edit file in linux):
+filename: etc/pushpin/routes
+	cat > routes
+	* localhost:8080,over_http
+
+
+publish the messages:
+	pushpin-publish news  "hello"
+

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushpin-backend-svc
+  namespace: wso2
+  selfLink: /api/v1/namespaces/wso2/services/pushpin-backend-svc
+spec:
+  clusterIP: None
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: http2
+    port: 8090
+    protocol: TCP
+    targetPort: 8090 
+  selector:
+    app: pushpin-backend
+  sessionAffinity: None
+  type: ClusterIP

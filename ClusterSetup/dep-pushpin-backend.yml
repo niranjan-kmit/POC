@@ -1,0 +1,70 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: pushpin-backend
+  name: pushpin-backend
+  selfLink: /apis/extensions/v1beta1/namespaces/wso2/deployments/pushpinbackend
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: pushpin-backend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pushpin-backend
+    spec:
+      containers:
+      - name: pushpin-backend
+        image: gharikrishna123/pushpinbackend:v4
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8090
+          protocol: TCP
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: dockercred
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: wso2svcacct
+      serviceAccountName: wso2svcacct
+      terminationGracePeriodSeconds: 30
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushpin-backend-svc
+  namespace: wso2
+  selfLink: /api/v1/namespaces/wso2/services/pushpin-backend-svc
+spec:
+  clusterIP: None
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: http2
+    port: 8090
+    protocol: TCP
+    targetPort: 8090 
+  selector:
+    app: pushpin-backend
+  sessionAffinity: None
+  type: ClusterIP

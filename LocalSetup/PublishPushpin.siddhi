@@ -1,0 +1,36 @@
+@App:name('PublishPushpin')
+
+@App:description('Description of the plan')
+
+
+@source(type = 'http', receiver.url = "http://0.0.0.0:8006/sendtopushpin", @map(type = 'json'))
+define stream PushpinStream (news string);
+
+
+
+
+	@sink(type = 'log', 
+		@map(type = 'json', 
+			@payload("{{items}}")))
+	@sink(type = 'http', publisher.url = "http://localhost:5561/publish", method = "POST", on.error = "LOG", ssl.verification.disabled = "true", headers = "'Content-Type:application/json'",
+		@map(type = 'json', 
+			@payload("{{items}}")))
+	define stream OutputStream (items string);
+
+	@info(name = 'PushpinQuery')
+	from PushpinStream 
+	select str:fillTemplate("""
+	{
+		"items":[
+			{
+				"channel": "all",
+				"formats": {
+					"ws-message": {
+					"action": "send",
+					"content": "{{1}}"
+					}
+				}
+			}
+		]
+	 }	""", news) as items 
+	insert into OutputStream;
