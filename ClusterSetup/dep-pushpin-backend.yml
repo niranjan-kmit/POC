@@ -2,13 +2,16 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   annotations:
-    deployment.kubernetes.io/revision: "1"
-  creationTimestamp: null
-  generation: 1
+    deployment.kubernetes.io/revision: "6"
+  creationTimestamp: "2020-05-21T18:20:22Z"
+  generation: 8
   labels:
     app: pushpin-backend
   name: pushpin-backend
-  selfLink: /apis/extensions/v1beta1/namespaces/wso2/deployments/pushpinbackend
+  namespace: wso2
+  resourceVersion: "52893294"
+  selfLink: /apis/extensions/v1beta1/namespaces/wso2/deployments/pushpin-backend
+  uid: b52891dd-dc28-4ed4-b49b-e4cfd03b3bda
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -23,19 +26,24 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2020-06-09T17:49:44+05:30"
       creationTimestamp: null
       labels:
         app: pushpin-backend
     spec:
       containers:
-      - name: pushpin-backend
-        image: gharikrishna123/pushpinbackend:v4
+      - image: gharikrishna123/pushpinbackend:v5
         imagePullPolicy: Always
+        name: pushpin-backend
         ports:
         - containerPort: 8080
           protocol: TCP
         - containerPort: 8090
           protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       imagePullSecrets:
       - name: dockercred
@@ -44,7 +52,8 @@ spec:
       securityContext: {}
       serviceAccount: wso2svcacct
       serviceAccountName: wso2svcacct
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: 90
+
 
 ---
 apiVersion: v1

@@ -12,6 +12,8 @@ var connections=[];
 //const webSocketUrl = 'wss://taj0zjsvv5.execute-api.us-east-1.amazonaws.com/test/';
 const webSocketUrl = 'ws://realtime-pushpin-b27e96fcf05cd2ba.elb.us-east-1.amazonaws.com/ws';
 
+//const webSocketUrl = 'ws://realtime-pushpin-alb-1747232076.us-east-1.elb.amazonaws.com/ws'
+
 //const webSocketUrl = 'ws://localhost:7999/ws';
 //const webSocketUrl = 'http://localhost:7999/stream?cname=hari'
 
@@ -48,8 +50,9 @@ function createWebSocketConnection(webSocketUrl, varCounter, callback) {
     connection.onopen = (evt) => {
 		console.log("Opened" + varCounter);
 //		connection.send('Hello');
-//		connection.send('{"action":"onMessage","message":{"type":"pricing_req","conflationDelivery":"last","conflationType":"C-1","item":{"symbols":["DU211ZZ"],"fields":[]},"correlationId":"1","source":"PLATTS"}}');
-    };
+		connection.send('{"type": "heards_sub_req", "conflationDelivery": "first", "conflationType": "C5", "criteria": { "commodities": ["Utilities"], "geographies": ["Europe", "Asia"], "createdDate": { "start": "2020-04-09T00:00:00.000Z", "end": "2020-04-13T23:59:59.000Z" }}, "correlationId": "Test123","source": "PLATTS"}');
+
+		};
     connection.onerror = (error) => {
         try {
 //			var errMessage = `ThreadId ${varCounter} WebSocket error: ${error.message}`

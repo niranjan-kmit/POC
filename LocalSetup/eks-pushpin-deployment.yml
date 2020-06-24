@@ -45,16 +45,31 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 9390
-      # - name: siddhi-runner
-      #   image: siddhiio/siddhi-runner-alpine:latest
-      #   imagePullPolicy: Always
-      #   ports:
-      #   - containerPort: 8006
-      #   - containerPort: 9090
-      #   - containerPort: 9443
+      - name: siddhi-runner
+        image: siddhiio/siddhi-runner-alpine:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8006
+        - containerPort: 9090
+        - containerPort: 9443
       volumes:
       - name: pushpin-config
         configMap:
           name: pushpin-config  
 
-       
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushpin-svc
+spec:
+  ports:
+  - name: http
+    port: 5561
+    protocol: TCP
+    targetPort: 5561
+  selector:
+    app: pushpin
+  sessionAffinity: None
+  type: ClusterIP

@@ -6,7 +6,7 @@ Get pod name
     kubectl get pods
 
 Port forward:replace pod name from  above
-    kubectl port-forward pushpin-dep-7cd4769567-6j6k6  7999:7999 5561:5561 9390:9390 8006:8006
+    kubectl port-forward deployment/pushpin-dep 7999:7999 5561:5561 9390:9390 8006:8006
 
 You will see 3 container running on a single Pod.
 
